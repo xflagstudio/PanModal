@@ -228,7 +228,7 @@ open class PanModalPresentationController: UIPresentationController {
                 let presentable = self.presentable
                 else { return }
 
-            self.adjustPresentedViewFrame()
+            self.adjustPresentedViewFrame(adjustsYPosition: true)
             if presentable.shouldRoundTopCorners {
                 self.addRoundedCorners(to: self.presentedView)
             }
@@ -294,7 +294,7 @@ public extension PanModalPresentationController {
      */
     func setNeedsLayoutUpdate() {
         configureViewLayout()
-        adjustPresentedViewFrame()
+        adjustPresentedViewFrame(adjustsYPosition: false)
         observe(scrollView: presentable?.panScrollable)
         configureScrollViewInsets()
     }
@@ -355,21 +355,23 @@ private extension PanModalPresentationController {
     /**
      Reduce height of presentedView so that it sits at the bottom of the screen
      */
-    func adjustPresentedViewFrame() {
-
+    func adjustPresentedViewFrame(adjustsYPosition: Bool) {
         guard let frame = containerView?.frame
             else { return }
 
         let adjustedSize = CGSize(width: frame.size.width, height: frame.size.height - anchoredYPosition)
         let panFrame = panContainerView.frame
         panContainerView.frame.size = frame.size
-        
-        if ![shortFormYPosition, longFormYPosition].contains(panFrame.origin.y) {
-            // if the container is already in the correct position, no need to adjust positioning
-            // (rotations & size changes cause positioning to be out of sync)
-            adjust(toYPosition: panFrame.origin.y - panFrame.height + frame.height)
+
+        if adjustsYPosition {
+            if ![shortFormYPosition, longFormYPosition].contains(panFrame.origin.y) {
+                // if the container is already in the correct position, no need to adjust positioning
+                // (rotations & size changes cause positioning to be out of sync)
+                adjust(toYPosition: panFrame.origin.y - panFrame.height + frame.height)
+            }
+            panContainerView.frame.origin.x = frame.origin.x
         }
-        panContainerView.frame.origin.x = frame.origin.x
+
         presentedViewController.view.frame = CGRect(origin: .zero, size: adjustedSize)
     }
 
